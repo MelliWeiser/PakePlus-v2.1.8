@@ -1,11 +1,732 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        Hello World
-    </body>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>猎途·菜鸡·航潮 · 地图含未指定</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        .phone-frame {
+            max-width: 400px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.2), 0 8px 16px -6px rgba(0, 0, 0, 0.1);
+            padding: 24px 20px 32px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* 品牌三按钮 */
+        .brand-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .btn-brand {
+            flex: 1;
+            background: #f0f2f5;
+            border: none;
+            border-radius: 60px;
+            padding: 12px 4px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            transition: 0.2s;
+            cursor: pointer;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .btn-brand.active {
+            background: #1e3c72;
+            color: white;
+            box-shadow: 0 6px 12px rgba(20, 60, 120, 0.25);
+            border-color: #2d4b8a;
+        }
+
+        .btn-brand:first-child.active { background: #0f2b4f; }  /* 猎途深色 */
+        .btn-brand:nth-child(2).active { background: #2b4f2b; }  /* 菜鸡墨绿 */
+        .btn-brand:last-child.active { background: #8b4f2b; }  /* 航潮电竞 棕色系 */
+
+        /* 模式行 */
+        .mode-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            background: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 40px;
+        }
+
+        .mode-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: #334155;
+            margin-right: 12px;
+            padding-left: 6px;
+            min-width: 40px;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .btn-mode {
+            flex: 1;
+            background: #e9ecf0;
+            border: none;
+            border-radius: 30px;
+            padding: 10px 0;
+            font-size: 16px;
+            font-weight: 550;
+            color: #1e293b;
+            transition: 0.15s;
+            cursor: pointer;
+            border: 1px solid #d0d7de;
+        }
+
+        .btn-mode.active {  
+            color: white;
+            border-color: #b12a2a;
+            box-shadow: 0 4px 8px rgba(220, 50, 50, 0.2);
+        }
+
+        /* 地图行 - 多按钮可换行，增加未指定按钮后依然可容纳 */
+        .map-row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            background: #f8fafc;
+            padding: 12px 12px;
+            border-radius: 30px;
+        }
+
+        .map-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: #334155;
+            margin-right: 12px;
+            padding-left: 6px;
+            line-height: 40px;
+            min-width: 40px;
+        }
+
+        .map-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .btn-map {
+            background: #e9ecf0;
+            border: none;
+            border-radius: 30px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 550;
+            color: #1e293b;
+            transition: 0.15s;
+            cursor: pointer;
+            border: 1px solid #d0d7de;
+            flex: 0 0 auto;
+        }
+
+        .btn-map.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 4px 8px rgba(59,130,246,0.3);
+        }
+
+        /* 输入域通用 */
+        .input-field {
+            margin-bottom: 20px;
+        }
+
+        .input-field label {
+            display: block;
+            font-size: 15px;
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 16px 18px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 16px;
+            outline: none;
+            transition: 0.15s;
+        }
+
+        .input-field input:focus {
+            border-color: #3b82f6;
+            background: #ffffff;
+            box-shadow: 0 4px 10px rgba(59,130,246,0.1);
+        }
+
+        /* 哈夫币带单位行 */
+        .hf-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 0 6px 0 0;
+            transition: 0.15s;
+        }
+        .hf-wrapper:focus-within {
+            border-color: #3b82f6;
+            background: #ffffff;
+            box-shadow: 0 4px 10px rgba(59,130,246,0.1);
+        }
+        .hf-wrapper input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 16px 18px;
+            font-size: 16px;
+            outline: none;
+        }
+        .hf-unit {
+            padding-right: 16px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #475569;
+        }
+
+        /* 价格双行 */
+        .price-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .price-item {
+            flex: 1;
+        }
+
+        .price-item label {
+            display: block;
+            font-size: 15px;
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+
+        .price-item input {
+            width: 100%;
+            padding: 16px 18px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .price-item input:focus {
+            border-color: #3b82f6;
+            background: #ffffff;
+        }
+
+        /* ID字段 */
+        .id-field {
+            margin-bottom: 20px;
+        }
+
+        .id-field label {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .id-field input {
+            width: 100%;
+            padding: 16px 18px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .id-field input:focus {
+            border-color: #3b82f6;
+            background: #ffffff;
+        }
+
+        /* 订单表格区域 */
+        .table-section {
+            margin-top: 24px;
+            border-top: 2px dashed #d1d9e6;
+            padding-top: 16px;
+        }
+        .table-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0f2b4f;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #f8fafc;
+            border-radius: 16px;
+            overflow: hidden;
+            font-size: 13px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .order-table th {
+            background: #e6edf5;
+            color: #1e3c72;
+            font-weight: 600;
+            padding: 10px 4px;
+            white-space: nowrap;
+        }
+        .order-table td {
+            padding: 8px 4px;
+            border-bottom: 1px solid #dce5ef;
+            text-align: center;
+            color: #1e293b;
+        }
+        .order-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        /* 滚动容器 */
+        .table-scroll {
+            overflow-x: auto;
+            border-radius: 16px;
+        }
+
+        /* 按钮组 */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .action-btn {
+            flex: 1;
+            background: #ffffff;
+            border: 1.5px solid #1e3c72;
+            border-radius: 40px;
+            padding: 14px 10px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e3c72;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+        }
+        .action-btn.primary {
+            background: #0f2b4f;
+            color: white;
+            border: none;
+            box-shadow: 0 8px 14px -8px #0f2b4f;
+        }
+        .action-btn.primary:hover {
+            background: #1a3f68;
+        }
+        .action-btn.secondary:hover {
+            background: #ebf0f8;
+        }
+
+        input[type=number]::-webkit-inner-spin-button { opacity: 0.5; }
+        input::placeholder { color: #9aa9b9; font-weight: 400; }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <!-- 上半部分：三个品牌按钮 -->
+        <div class="brand-row">
+            <button class="btn-brand active" id="btnLietu" type="button">猎途电竞</button>
+            <button class="btn-brand" id="btnCaiji" type="button">菜鸡电竞</button>
+            <button class="btn-brand" id="btnHangchao" type="button">航潮电竞</button>
+        </div>
+
+        <!-- 模式选择：绝密 / 机密 -->
+        <div class="mode-row">
+            <span class="mode-label">模式</span>
+            <div class="mode-buttons">
+                <button class="btn-mode active" id="modeJueMi" type="button">绝密</button>
+                <button class="btn-mode" id="modeJiMi" type="button">机密</button>
+            </div>
+        </div>
+
+        <!-- 地图选择：大坝 长弓溪谷 巴克什 航天基地 监狱 未指定 -->
+        <div class="map-row">
+            <span class="map-label">地图</span>
+            <div class="map-buttons">
+                <button class="btn-map active" data-map="大坝">大坝</button>
+                <button class="btn-map" data-map="长弓溪谷">长弓溪谷</button>
+                <button class="btn-map" data-map="巴克什">巴克什</button>
+                <button class="btn-map" data-map="航天基地">航天基地</button>
+                <button class="btn-map" data-map="监狱">监狱</button>
+                <button class="btn-map" data-map="未指定">未指定</button>
+            </div>
+        </div>
+
+        <!-- 哈夫币输入框 (带单位“万”) -->
+        <div class="input-field hf-field">
+            <label>🔹 哈夫币</label>
+            <div class="hf-wrapper">
+                <input type="number" id="hfValue" placeholder="输入数字" step="1" min="0" value="">
+                <span class="hf-unit">万</span>
+            </div>
+        </div>
+
+        <!-- 接单价格 + 打手价格 并排 -->
+        <div class="price-row">
+            <div class="price-item">
+                <label>💰 接单价格</label>
+                <input type="number" id="receivePrice" placeholder="接单价格" step="0.01" min="0">
+            </div>
+            <div class="price-item">
+                <label>⚔️ 打手价格</label>
+                <input type="number" id="fighterPrice" placeholder="打手价格" step="0.01" min="0">
+            </div>
+        </div>
+
+        <!-- 打手ID + 历史记录下拉提示 -->
+        <div class="id-field">
+            <label>🆔 打手 ID (可输前字符匹配历史)</label>
+            <input type="text" id="fighterId" list="fighterHistory" placeholder="输入打手ID 或 从列表选择">
+            <datalist id="fighterHistory"></datalist>
+        </div>
+
+        <!-- 老板ID -->
+        <div class="id-field">
+            <label>👑 老板 ID</label>
+            <input type="text" id="bossId" placeholder="输入老板ID">
+        </div>
+
+        <!-- 输出订单按钮 (添加到表格并清空输入框) -->
+        <button class="action-btn primary" id="addOrderBtn" style="width:100%; margin-bottom:12px;">📋 输出订单 (添加到表格)</button>
+
+        <!-- 表格区域：累积订单 -->
+        <div class="table-section">
+            <div class="table-title">
+                <span>📊 订单记录表</span>
+                <span style="font-size:13px; color:#4b6584;">共 <span id="orderCount">0</span> 条</span>
+            </div>
+            <div class="table-scroll">
+                <table class="order-table" id="orderTable">
+                    <thead>
+                        <tr>
+                            <th>品牌</th>
+                            <th>模式</th>
+                            <th>地图</th>
+                            <th>哈夫币(万)</th>
+                            <th>接单价</th>
+                            <th>打手价</th>
+                            <th>打手ID</th>
+                            <th>老板ID</th>
+                            <th>时间</th>
+                            <th>利润</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- 动态添加的行会出现在这里 -->
+                    </tbody>
+                </table>
+            </div>
+            <!-- 导出全部订单按钮 + 清空表格 -->
+            <div class="button-group">
+                <button class="action-btn secondary" id="exportAllBtn">📎 导出全部订单</button>
+                <button class="action-btn secondary" id="clearTableBtn">🗑️ 清空表格</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // --- 获取元素 ---
+            const btnLietu = document.getElementById('btnLietu');
+            const btnCaiji = document.getElementById('btnCaiji');
+            const btnHangchao = document.getElementById('btnHangchao');
+            const brandBtns = [btnLietu, btnCaiji, btnHangchao];
+
+            const modeJueMi = document.getElementById('modeJueMi');
+            const modeJiMi = document.getElementById('modeJiMi');
+            const modeBtns = [modeJueMi, modeJiMi];
+
+            // 地图按钮 (包含新增的“未指定”)
+            const mapBtns = Array.from(document.querySelectorAll('.btn-map'));
+
+            // 输入字段
+            const hfInput = document.getElementById('hfValue');
+            const receiveInput = document.getElementById('receivePrice');
+            const fighterPriceInput = document.getElementById('fighterPrice');
+            const fighterIdInput = document.getElementById('fighterId');
+            const bossIdInput = document.getElementById('bossId');
+
+            // 按钮
+            const addOrderBtn = document.getElementById('addOrderBtn');
+            const exportAllBtn = document.getElementById('exportAllBtn');
+            const clearTableBtn = document.getElementById('clearTableBtn');
+            const tableBody = document.getElementById('tableBody');
+            const orderCountSpan = document.getElementById('orderCount');
+
+            // 打手ID历史记录 (去重)
+            let fighterHistoryList = [];
+            const datalist = document.getElementById('fighterHistory');
+
+            // --- 更新datalist选项 ---
+            function updateFighterDatalist() {
+                datalist.innerHTML = '';
+                fighterHistoryList.forEach(id => {
+                    const option = document.createElement('option');
+                    option.value = id;
+                    datalist.appendChild(option);
+                });
+            }
+
+            // --- 添加打手ID到历史 (如果非空且未存在) ---
+            function addFighterIdToHistory(id) {
+                const trimmed = id.trim();
+                if (trimmed === '') return;
+                if (!fighterHistoryList.includes(trimmed)) {
+                    fighterHistoryList.push(trimmed);
+                    updateFighterDatalist();
+                }
+            }
+
+            // --- 品牌切换 (互斥高亮) ---
+            brandBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    brandBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // --- 模式切换 (互斥高亮 + 特殊颜色) ---
+            function setModeActive(activeBtn) {
+                modeBtns.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.style.backgroundColor = '';   // 清除内联背景
+                    btn.style.color = '';
+                });
+                activeBtn.classList.add('active');
+
+                if (activeBtn === modeJueMi) {
+                    activeBtn.style.backgroundColor = '#b22222'; // 深红
+                } else if (activeBtn === modeJiMi) {
+                    activeBtn.style.backgroundColor = '#d97706'; // 橙
+                }
+                activeBtn.style.color = 'white';
+            }
+
+            setModeActive(modeJueMi);
+            modeJueMi.addEventListener('click', function() { setModeActive(modeJueMi); });
+            modeJiMi.addEventListener('click', function() { setModeActive(modeJiMi); });
+
+            // --- 地图切换 (互斥高亮) ---
+            function setMapActive(activeBtn) {
+                mapBtns.forEach(btn => btn.classList.remove('active'));
+                activeBtn.classList.add('active');
+            }
+
+            // 默认第一个地图（大坝）已激活，但以防万一
+            if (!mapBtns.some(btn => btn.classList.contains('active'))) {
+                mapBtns[0].classList.add('active');
+            }
+
+            mapBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    setMapActive(this);
+                });
+            });
+
+            // --- 辅助函数：格式化当前时间 YYYY-MM-DD HH:MM:SS ---
+            function getCurrentTime() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            }
+
+            // --- 计算利润 (接单 - 打手) 保留两位小数，无效返回空字符串 ---
+            function calculateProfit(receive, fighter) {
+                const r = parseFloat(receive);
+                const f = parseFloat(fighter);
+                if (!isNaN(r) && !isNaN(f)) {
+                    return (r - f).toFixed(2);
+                }
+                return ''; // 输入无效时显示空白
+            }
+
+            // --- 更新订单计数 ---
+            function updateOrderCount() {
+                const count = tableBody.children.length;
+                orderCountSpan.textContent = count;
+            }
+
+            // --- 添加当前订单到表格 ---
+            function addCurrentOrderToTable() {
+                // 获取品牌
+                const activeBrand = brandBtns.find(btn => btn.classList.contains('active'));
+                const brand = activeBrand ? activeBrand.innerText.trim() : '猎途电竞';
+
+                // 获取模式
+                const activeMode = modeBtns.find(btn => btn.classList.contains('active'));
+                const mode = activeMode ? activeMode.innerText.trim() : '绝密';
+
+                // 获取地图
+                const activeMap = mapBtns.find(btn => btn.classList.contains('active'));
+                const map = activeMap ? activeMap.innerText.trim() : '大坝';
+
+                // 获取各输入值 (保留原始字符串)
+                const hf = hfInput.value.trim() || '';
+                const receive = receiveInput.value.trim() || '';
+                const fighterPrice = fighterPriceInput.value.trim() || '';
+                const fighterId = fighterIdInput.value.trim() || '';
+                const bossId = bossIdInput.value.trim() || '';
+
+                // 将打手ID加入历史记录
+                addFighterIdToHistory(fighterId);
+
+                // 生成时间
+                const timeStr = getCurrentTime();
+
+                // 计算利润
+                const profit = calculateProfit(receive, fighterPrice);
+
+                // 创建新行 (注意列顺序与表头一致)
+                const newRow = document.createElement('tr');
+
+                newRow.innerHTML = `
+                    <td>${brand}</td>
+                    <td>${mode}</td>
+                    <td>${map}</td>
+                    <td>${hf}</td>
+                    <td>${receive}</td>
+                    <td>${fighterPrice}</td>
+                    <td>${fighterId}</td>
+                    <td>${bossId}</td>
+                    <td>${timeStr}</td>
+                    <td>${profit}</td>
+                `;
+
+                tableBody.appendChild(newRow);
+                updateOrderCount();
+
+                // --- 清空所有输入框 (但不影响品牌/模式/地图选择) ---
+                hfInput.value = '';
+                receiveInput.value = '';
+                fighterPriceInput.value = '';
+                fighterIdInput.value = '';
+                bossIdInput.value = '';
+            }
+
+            // --- 清空表格 (但保留历史记录, 不清除) ---
+            function clearTable() {
+                tableBody.innerHTML = '';
+                updateOrderCount();
+            }
+
+            // --- 导出整个表格为CSV (包含表头) ---
+            function exportAllToCSV() {
+                const table = document.getElementById('orderTable');
+                const rows = table.querySelectorAll('tr'); 
+                const csvData = [];
+
+                // 表头
+                const headerCells = table.querySelectorAll('thead th');
+                const headerRow = Array.from(headerCells).map(th => th.innerText.trim());
+                csvData.push(headerRow);
+
+                // 数据行
+                const dataRows = tableBody.querySelectorAll('tr');
+                dataRows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    const rowData = Array.from(cells).map(td => td.innerText.trim());
+                    csvData.push(rowData);
+                });
+
+                // 转换为CSV
+                const escapeCSV = (cell) => {
+                    if (cell === null || cell === undefined) cell = '';
+                    cell = String(cell);
+                    if (cell.includes(',') || cell.includes('\n') || cell.includes('"')) {
+                        cell = '"' + cell.replace(/"/g, '""') + '"';
+                    }
+                    return cell;
+                };
+
+                const csvContent = csvData.map(row => row.map(escapeCSV).join(',')).join('\n');
+
+                // 添加BOM
+                const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                const now = new Date();
+                const dateStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}.${now.getMinutes().toString().padStart(2,'0')}`;
+                link.download = `全部订单_${dateStr}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+
+            // --- 绑定事件 ---
+            addOrderBtn.addEventListener('click', function() {
+                addCurrentOrderToTable();
+                // 输入框已在添加函数内部清空
+            });
+
+            exportAllBtn.addEventListener('click', function() {
+                if (tableBody.children.length === 0) {
+                    alert('当前表格为空，暂无订单可导出。');
+                    return;
+                }
+                exportAllToCSV();
+            });
+
+            clearTableBtn.addEventListener('click', function() {
+                if (tableBody.children.length > 0) {
+                    if (confirm('确定清空所有订单记录吗？历史打手ID建议仍会保留。')) {
+                        clearTable();
+                    }
+                } else {
+                    alert('表格已经是空的。');
+                }
+            });
+
+            // 初始化计数
+            updateOrderCount();
+        })();
+    </script>
+</body>
 </html>
